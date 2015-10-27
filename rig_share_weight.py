@@ -3,7 +3,7 @@ import bpy
 bl_info = {
     "name": "Share weight",
     "author": "SolPie",
-    "version": (1, 1),
+    "version": (1, 2),
     "blender": (2, 69, 0),
     "location": "View3D > Specials > Share weight",
     "description": "Share weight",
@@ -16,7 +16,7 @@ def auto_weight():
     ob_edit = bpy.context.active_object
     ob_mesh = None
 
-    #find ob_mesh
+    # find ob_mesh
     obs = bpy.context.selected_objects
     for ob in obs:
         if ob == ob_edit:
@@ -24,39 +24,56 @@ def auto_weight():
         else:
             ob_mesh = ob
     ob_mesh.select = False
+    # collection select bone name
+    bone_sels = []
+    for bone in bpy.context.editable_bones:
+        bone_sels.append(bone)
+
+
+    # delete unselected bone
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.duplicate()
     bpy.ops.object.mode_set(mode='EDIT')
-    bpy.ops.armature.select_all(action='INVERT')
-    bpy.ops.armature.delete()
+
+    arm = bpy.context.editable_bones[0].id_data
+    for bone in arm.edit_bones:
+        is_del = True
+        for bone_sel in bone_sels:
+            if bone_sel.name == bone.name:
+                is_del = False
+                break
+        if is_del:
+            arm.edit_bones.remove(bone)
+
     bpy.ops.object.mode_set(mode='OBJECT')
 
-    tmp_bones = bpy.context.active_object
-    print(ob_edit, ob_mesh, tmp_bones)
+    tmp_armature = bpy.context.active_object
+    print(ob_edit, ob_mesh, tmp_armature)
 
-    #Auto weight
+    # Auto weight
     ob_edit.select = False
     ob_mesh.select = True
-    tmp_bones.select = True
-    scn.objects.active = tmp_bones
+    tmp_armature.select = True
+    scn.objects.active = tmp_armature
     bpy.ops.object.parent_set(type='ARMATURE_AUTO')
     ob_mesh.modifiers[-1].object = bpy.data.objects[ob_edit.name]
 
     ob_edit.select = True
     ob_mesh.select = True
-    tmp_bones.select = False
+    tmp_armature.select = False
     scn.objects.active = ob_edit
     bpy.ops.object.parent_set(type='ARMATURE', keep_transform=False)
 
-    #delete tmp bones
+    # delete tmp armature
     ob_edit.select = False
     ob_mesh.select = False
-    tmp_bones.select = True
-    scn.objects.active = tmp_bones
+    tmp_armature.select = True
+    scn.objects.active = tmp_armature
     bpy.ops.object.delete(use_global=False)
 
-    #pose mode
+    # pose mode
     scn.objects.active = ob_edit
+    ob_edit.select = True
     bpy.ops.object.posemode_toggle()
 
 
