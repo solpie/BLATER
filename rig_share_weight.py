@@ -35,6 +35,7 @@ def auto_weight():
     bpy.ops.object.duplicate()
     bpy.ops.object.mode_set(mode='EDIT')
 
+    #arm = bpy.data.armatures["Armature"]
     arm = bpy.context.editable_bones[0].id_data
     for bone in arm.edit_bones:
         is_del = True
@@ -43,6 +44,7 @@ def auto_weight():
                 is_del = False
                 break
         if is_del:
+            # bpy.data.armatures["Armature"].edit_bones.remove()
             arm.edit_bones.remove(bone)
 
     bpy.ops.object.mode_set(mode='OBJECT')
