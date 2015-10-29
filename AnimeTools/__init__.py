@@ -10,8 +10,11 @@ bl_info = {
     "description": "misc tool",
     "warning": "",
     "category": "Animation"}
+
+
 ## CREA PANELES EN TOOLS
 bpy.types.Scene.anime_cloth_group = bpy.props.BoolProperty(default=False)
+bpy.types.Scene.anime_shape_key = bpy.props.BoolProperty(default=False)
 bpy.types.Scene.anime_cloth_group_name = bpy.props.StringProperty(name="group name",default="Cloth")
 
 class AnimePanel(bpy.types.Panel):
@@ -30,9 +33,17 @@ class AnimePanel(bpy.types.Panel):
         row = col.row()
         row.prop(bpy.context.scene, "anime_cloth_group", text="Cloth Group", icon="OBJECT_DATAMODE")
         row.prop(bpy.context.scene, "anime_cloth_group_name", text="Name")
+
+        col = layout.column(align=True)
+        col.prop(bpy.context.scene, "anime_shape_key", text="Shape key", icon="SHAPEKEY_DATA")
         # col.operator("anime.cloth.init", text="init cloth group UI")
         #col.prop(bpy.context.scene, "anime_object_tools", text="Object", icon="OBJECT_DATAMODE")
 
+from AnimeTools.anime_shape_key import *
+
+
+
+#########################################################################################
 
 # POLLS
 class PollCloth():
@@ -61,8 +72,10 @@ class PanelCloth(PollCloth, bpy.types.Panel):
                 colrow = col.row(align=1)
                 colrow.label(text=obj.name)
                 colrow.operator("anime.cloth_bake", text="Bake").objName = obj.name
-                
                 pass
+
+
+
 
 class ClothBake(bpy.types.Operator):
     bl_idname = 'anime.cloth_bake'
@@ -85,11 +98,12 @@ class ClothBake(bpy.types.Operator):
         #
         if not bakeObj.modifiers.get("Cloth"):
             bpy.ops.object.modifier_add(type='CLOTH')
-        for modifier in bakeObj.modifiers:
-            if modifier.type == 'CLOTH':
-                override = {'scene': bpy.context.active_base.id_data, 'active_object': object, 'point_cache': modifier.point_cache}
-                bpy.ops.ptcache.free_bake(override)
-                bpy.ops.ptcache.bake(override,bake=True)
+        for scene in bpy.data.scenes:
+            for modifier in bakeObj.modifiers:
+                if modifier.type == 'CLOTH':
+                    override = {'scene': bpy.context.active_base.id_data, 'active_object': object, 'point_cache': modifier.point_cache}
+                    bpy.ops.ptcache.free_bake(override)
+                    bpy.ops.ptcache.bake(override,bake=True)
         print(self.objName)
         return {'FINISHED'}
 
